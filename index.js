@@ -17,7 +17,7 @@ function extractFromLines(label, lines, keys, options = { optional: false }) {
     }
   }
   if (!options.optional) console.warn(`⚠️ ${label} not found.`);
-  return "N/A";
+  return null;
 }
 
 function extractGroupedBlock(lines, startLabel, keys) {
@@ -77,11 +77,11 @@ function extractIssuePlaceAndDate(text, lines) {
   const fallbackDate = dateLine?.match(/\w+ \d{1,2}, \d{4}/)?.[0];
   const addressLine = lines.find((l) => /Toronto|Frankfurt|New York/i.test(l));
   const fallbackPlace =
-    addressLine?.match(/\b(Toronto|Frankfurt|New York)\b/i)?.[0] || "N/A";
+    addressLine?.match(/\b(Toronto|Frankfurt|New York)\b/i)?.[0] || null;
 
   return {
     issuePlace: fallbackPlace,
-    issueDate: fallbackDate || "N/A",
+    issueDate: fallbackDate || null,
   };
 }
 
@@ -102,12 +102,12 @@ app.post('/extract-freight', (req, res) => {
     ]);
 
     const extracted = {
-      poNumber: text.match(/PO\s*#?\s*[:\-]?\s*(\d{5,})/i)?.[1] || "N/A",
-      invoiceNumber: text.match(/Invoice\s*#?\s*[:\-]?\s*(INV[\w\-]+)/i)?.[1] || "N/A",
+      poNumber: text.match(/PO\s*#?\s*[:\-]?\s*(\d{5,})/i)?.[1] || null,
+      invoiceNumber: text.match(/Invoice\s*#?\s*[:\-]?\s*(INV[\w\-]+)/i)?.[1] || null,
       awbNumber: extractFromLines("AWB Number", lines, ["AWB Number", "Air Waybill", "KC Number"], { optional: true }),
-      shipperNameAndAddress: extractGroupedBlock(lines, "Shipper/Exporter", ["Name", "Address", "Contact Name", "Contact Phone"]) || extractClientBlock(lines) || "N/A",
-      consigneeNameAndAddress: extractGroupedBlock(lines, "Consignee/Delivery", ["Name", "Address", "Contact Name", "Contact Phone"]) || extractFreightConsignee(lines) || "N/A",
-      importerInfo: extractGroupedBlock(lines, "Importer/Buyer", ["Name", "Address", "Contact Name", "Contact Phone"]) || "N/A",
+      shipperNameAndAddress: extractGroupedBlock(lines, "Shipper/Exporter", ["Name", "Address", "Contact Name", "Contact Phone"]) || extractClientBlock(lines) || null,
+      consigneeNameAndAddress: extractGroupedBlock(lines, "Consignee/Delivery", ["Name", "Address", "Contact Name", "Contact Phone"]) || extractFreightConsignee(lines) || null,
+      importerInfo: extractGroupedBlock(lines, "Importer/Buyer", ["Name", "Address", "Contact Name", "Contact Phone"]) || null,
       issuingCarrierAgent: extractFromLines("Issuing Carrier Agent", lines, ["Issuing Carrier"], { optional: true }),
       agentIataCode: extractFromLines("IATA Code", lines, ["IATA Code"], { optional: true }),
       accountNumber: extractFromLines("Account Number", lines, ["Account Number"], { optional: true }),
@@ -119,7 +119,7 @@ app.post('/extract-freight', (req, res) => {
       handlingInfo: extractFromLines("Handling Info", lines, ["Handling Instructions"], { optional: true }),
       goodsDescription: (() => {
         const startIdx = lines.findIndex((l) => /(PROTO|TWX|Part\s*#)/i.test(l));
-        if (startIdx === -1) return "N/A";
+        if (startIdx === -1) return null;
         const block = [];
         for (let i = startIdx; i < lines.length; i++) {
           if (/^Total\s+(Weight|Invoice Value)|^I declare|^Signature|^Date:/i.test(lines[i])) break;
@@ -131,18 +131,18 @@ app.post('/extract-freight', (req, res) => {
       otherCharges: extractFromLines("Other Charges", lines, ["Other Charges"], { optional: true }),
       totalPrepaid: extractFromLines("Total Prepaid", lines, ["Total Prepaid"], { optional: true }),
       totalCollect: extractFromLines("Total Collect", lines, ["Total Collect"], { optional: true }),
-      currency: extractFromLines("Currency", lines, ["Currency Used", "Goods Value"])?.match(/[A-Z]{3}|USD|EUR|\$/)?.[0] || "N/A",
+      currency: extractFromLines("Currency", lines, ["Currency Used", "Goods Value"])?.match(/[A-Z]{3}|USD|EUR|\$/)?.[0] || null,
       totalInvoiceValue: extractFromLines("Total Invoice Value", lines, ["Total Invoice Value", "Goods Value"]),
       totalWeight: text.match(/Total Weight\s*[:\-]?\s*([\d.,]+\s*(kg|KG))/i)?.[1] || 
-                 (text.match(/Gross Weight.*?(\d+)\s*(kg)?/i)?.[1] ? text.match(/Gross Weight.*?(\d+)\s*(kg)?/i)[1] + " kg" : "N/A"),
+                 (text.match(/Gross Weight.*?(\d+)\s*(kg)?/i)?.[1] ? text.match(/Gross Weight.*?(\d+)\s*(kg)?/i)[1] + " kg" : null),
       declaredCarriageValue: extractFromLines("Declared Carriage Value", lines, ["Declared Value for Carriage"], { optional: true }),
       declaredCustomsValue: extractFromLines("Declared Customs Value", lines, ["Declared Value for Customs"], { optional: true }),
       insuranceIfAny: extractFromLines("Insurance (if any)", lines, ["Amount of Insurance (if any)"], { optional: true }),
       incoterm: extractFromLines("Incoterm", lines, ["Incoterm", "Freight Terms"]),
       chargesCode: extractFromLines("Charges Code", lines, ["Charges Code"], { optional: true }),
-      shipperSignature: signatureRaw.replace(/^(Name:|Signature:)/i, "").trim(),
+      shipperSignature: signatureRaw?.replace(/^(Name:|Signature:)/i, "").trim(),
       jobTitle: extractFromLines("Job Title", lines, ["Job Title"], { optional: true }) || 
-               (signatureRaw.includes(",") ? signatureRaw.split(",")[1]?.trim() : "N/A"),
+               (signatureRaw?.includes(",") ? signatureRaw?.split(",")[1]?.trim() : null),
       carrierSignature: extractFromLines("Carrier Signature", lines, ["Signature of Carrier"], { optional: true }),
       issueDate,
       issuePlace,
