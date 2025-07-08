@@ -181,14 +181,14 @@ app.post("/generate-pdf", async (req, res) => {
 
 
     browser = await puppeteer.launch({
-      headless: true,
+      headless: "new",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",  // Important for cloud environments
         "--single-process"          // May be needed for Render.com
       ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser'
+      executablePath: "/usr/bin/chromium"
     });
 
     const page = await browser.newPage();
@@ -208,11 +208,11 @@ app.post("/generate-pdf", async (req, res) => {
 
     // await browser.close();
     // fs.writeFile("./awb.pdf", pdfBuffer)
-    try {
-      await fs.writeFile("./awb.pdf", pdfBuffer);
-    } catch (writeErr) {
-      console.error("Warning: Failed to save PDF copy:", writeErr);
-    }
+    // try {
+    //   await fs.writeFile("./awb.pdf", pdfBuffer);
+    // } catch (writeErr) {
+    //   console.error("Warning: Failed to save PDF copy:", writeErr);
+    // }
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", 'inline; filename="awb.pdf"'); // for download4
 
@@ -220,10 +220,14 @@ app.post("/generate-pdf", async (req, res) => {
 
     // res.send(pdfBuffer);
   } catch (err) {
+     console.error("Full PDF generation error:", {
+      message: err.message,
+      stack: err.stack,
+      env: process.env
+    });
     res.status(500).json({
       error: "PDF generation failed",
-      details: err.message,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
+      details: err.message
     });
   } finally {
     if (browser) await browser.close();
