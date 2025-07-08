@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const puppeteer = require("puppeteer")
+// const puppeteer = require("puppeteer")
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 const fs = require("fs/promises");
 const app = express();
 app.use(bodyParser.json());
@@ -180,16 +182,20 @@ app.post("/generate-pdf", async (req, res) => {
     html = html.replace("carrierSignatureValue", req.body.carrierSignatureValue ?? "");
 
 
+    // browser = await puppeteer.launch({
+    //   headless: "new",
+    //   args: [
+    //     "--no-sandbox",
+    //     "--disable-setuid-sandbox",
+    //     "--disable-dev-shm-usage",  // Important for cloud environments
+    //     "--single-process"          // May be needed for Render.com
+    //   ]
+    // });
     browser = await puppeteer.launch({
-      headless: "new",
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",  // Important for cloud environments
-        "--single-process"          // May be needed for Render.com
-      ]
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
-
     const page = await browser.newPage();
 
     // Set viewport to fit wide layout
@@ -219,7 +225,7 @@ app.post("/generate-pdf", async (req, res) => {
 
     // res.send(pdfBuffer);
   } catch (err) {
-     console.error("Full PDF generation error:", {
+    console.error("Full PDF generation error:", {
       message: err.message,
       stack: err.stack,
       env: process.env
