@@ -142,6 +142,7 @@ app.post('/extract-freight', (req, res) => {
 });
 
 app.post("/generate-pdf", async (req, res) => {
+  let browser;
   try {
     let html = await fs.readFile("./AWB.html", "utf8");
     html = html.replace("shipperName", req.body.shipperName ?? "");
@@ -179,7 +180,7 @@ app.post("/generate-pdf", async (req, res) => {
     html = html.replace("carrierSignatureValue", req.body.carrierSignatureValue ?? "");
 
 
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: [
         "--no-sandbox",
@@ -219,8 +220,11 @@ app.post("/generate-pdf", async (req, res) => {
 
     // res.send(pdfBuffer);
   } catch (err) {
-    console.error("Error generating PDF:", err);
-    res.status(500).send("PDF generation failed");
+    res.status(500).json({
+      error: "PDF generation failed",
+      details: err.message,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH
+    });
   } finally {
     if (browser) await browser.close();
   }
