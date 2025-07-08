@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
+const puppeteer = require("puppeteer")
+const fs = require("fs/promises");
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -137,6 +138,78 @@ app.post('/extract-freight', (req, res) => {
       error: "Failed to process document",
       details: error.message
     });
+  }
+});
+
+app.post("/generate-pdf", async (req, res) => {
+  try {
+    let html = await fs.readFile("./AWB.html", "utf8");
+    html = html.replace("shipperName", req.body.shipperName ?? "");
+    html = html.replace("shipperAccountNumber", req.body.shipperAccountNumber ?? "");
+    html = html.replace("consigneeName", req.body.consigneeName ?? "");
+    html = html.replace("consigneeAccountNumber", req.body.consigneeAccountNumber ?? "");
+    html = html.replace("agentName", req.body.agentName ?? "");
+    html = html.replace("agentIATACode", req.body.agentIATACode ?? "");
+    html = html.replace("agentAccountNumber", req.body.agentAccountNumber ?? "");
+    html = html.replace("departure", req.body.departure ?? "");
+    html = html.replace("destination", req.body.destination ?? "");
+
+
+    html = html.replace("byFirstCarrier", req.body.byFirstCarrier ?? "");
+    html = html.replace("requestedFlightDate", req.body.requestedFlightDate ?? "");
+    html = html.replace("currency", req.body.currency ?? "");
+    html = html.replace("declaredCarriageValue", req.body.declaredCarriageValue ?? "");
+    html = html.replace("declaredCustomsValue", req.body.declaredCustomsValue ?? "");
+    html = html.replace("insuranceAmount", req.body.insuranceAmount ?? "");
+    html = html.replace("handlingInformation", req.body.handlingInformation ?? "");
+    html = html.replace("sciValue", req.body.sciValue ?? "");
+    html = html.replace("noOfPieces", req.body.noOfPieces ?? "");
+    html = html.replace("grossWeightValue", req.body.grossWeightValue ?? "");
+    html = html.replace("grossWeightUnitValue", req.body.grossWeightUnitValue ?? "");
+    html = html.replace("chargeableWeightValue", req.body.chargeableWeightValue ?? "");
+
+    html = html.replace("rateChargeValue", req.body.rateChargeValue ?? "");
+    html = html.replace("totalValue", req.body.totalValue ?? "");
+    html = html.replace("quantityOfGoodsValue", req.body.quantityOfGoodsValue);
+    html = html.replace("weightChargePrepaidValue", req.body.weightChargePrepaidValue ?? "");
+    html = html.replace("weightChargeCollectValue", req.body.weightChargeCollectValue ?? "");
+    html = html.replace("chargeableWeightValue", req.body.chargeableWeightValue ?? "");
+
+    html = html.replace("shipperSignatureValue", req.body.shipperSignatureValue ?? "");
+    html = html.replace("carrierSignatureValue", req.body.carrierSignatureValue ?? "");
+
+
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+
+    // Set viewport to fit wide layout
+    await page.setViewport({ width: 1600, height: 1000 });
+
+    // Load content
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true,
+      landscape: false,
+    });
+
+    await browser.close();
+    fs.writeFile("./awb.pdf", pdfBuffer)
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'inline; filename="awb.pdf"'); // for download4
+
+    res.send(pdfBuffer);
+
+    // res.send(pdfBuffer);
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+    res.status(500).send("PDF generation failed");
   }
 });
 
