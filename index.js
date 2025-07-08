@@ -11,7 +11,7 @@ function extractFromLines(label, lines, keys, options = { optional: false }) {
   for (let i = 0; i < lines.length; i++) {
     for (let key of keys) {
       if (lines[i].toLowerCase().includes(key.toLowerCase())) {
-        const value = lines[i].split(/[:\-]/)[1] || lines[i + 1];
+        const value = lines[i].split(/[:\-●]/)[1] || lines[i + 1];
         if (value) return value.trim();
       }
     }
@@ -32,57 +32,86 @@ function extractGroupedBlock(lines, startLabel, keys) {
         const l = group.find((line) =>
           line.toLowerCase().startsWith(k.toLowerCase())
         );
-        return l?.split(/[:#]/)[1]?.trim();
+        return l?.split(/[:#●]/)[1]?.trim();
       })
       .filter(Boolean)
       .join(", ") || null
   );
 }
 
-function extractClientBlock(lines) {
+function extractAddressBlock(lines, label) {
   const idx = lines.findIndex((line) =>
-    line.toLowerCase().startsWith("client")
+    line.toLowerCase().includes(label.toLowerCase())
   );
   if (idx === -1) return null;
-  const group = lines.slice(idx + 1, idx + 4);
-  const clean = group
-    .map((l) => l.split(/[:\-]/)[1]?.trim() || l)
-    .filter(Boolean);
-  return clean.join(", ") || null;
-}
-
-function extractFreightConsignee(lines) {
-  const start = lines.findIndex((l) => l.toLowerCase().startsWith("consignee"));
-  if (start === -1) return null;
-  const group = [];
-  for (let i = start + 1; i < lines.length; i++) {
-    if (/pickup|^\s*$/i.test(lines[i])) break;
-    group.push(lines[i]);
+  
+  let address = [];
+  for (let i = idx + 1; i < lines.length; i++) {
+    if (lines[i].trim().startsWith('●') || lines[i].trim() === '') break;
+    address.push(lines[i].trim());
   }
-  return group.map((line) => line.trim()).join(", ") || null;
+  return address.join(", ") || null;
 }
 
-function extractIssuePlaceAndDate(text, lines) {
-  const placeDateMatch = text.match(
-    /Place,\s*Date:\s*\n?\s*(.+?),\s*(\w+ \d{1,2}, \d{4})/
+function extractFlightDetails(lines) {
+  const flightDetails = {};
+  const startIdx = lines.findIndex(line => 
+    line.toLowerCase().includes('flight details')
   );
-  if (placeDateMatch) {
-    return {
-      issuePlace: placeDateMatch[1].trim(),
-      issueDate: placeDateMatch[2].trim(),
-    };
-  }
+  
+  if (startIdx === -1) return null;
+  
+  const flightBlock = lines.slice(startIdx);
+  
+  flightDetails.airportDeparture = extractFromLines("Airport of Departure", flightBlock, ["Airport of Departure"]);
+  flightDetails.firstCarrier = extractFromLines("First Carrier", flightBlock, ["By First Carrier"]);
+  flightDetails.routing = extractFromLines("Routing/Destination", flightBlock, ["Routing/Destination"]);
+  flightDetails.airportDestination = extractFromLines("Airport of Destination", flightBlock, ["Airport of Destination"]);
+  flightDetails.requestedFlight = extractFromLines("Requested Flight", flightBlock, ["Requested Flight/Date"]);
+  
+  return flightDetails;
+}
 
-  const dateLine = lines.find((l) => /Date:/.test(l));
-  const fallbackDate = dateLine?.match(/\w+ \d{1,2}, \d{4}/)?.[0];
-  const addressLine = lines.find((l) => /Toronto|Frankfurt|New York/i.test(l));
-  const fallbackPlace =
-    addressLine?.match(/\b(Toronto|Frankfurt|New York)\b/i)?.[0] || null;
+function extractFinancials(lines) {
+  const financials = {};
+  const startIdx = lines.findIndex(line => 
+    line.toLowerCase().includes('financials')
+  );
+  
+  if (startIdx === -1) return null;
+  
+  const financialBlock = lines.slice(startIdx);
+  
+  financials.insuranceAmount = extractFromLines("Insurance Amount", financialBlock, ["Amount of Insurance"]);
+  financials.currency = extractFromLines("Currency", financialBlock, ["Currency"]);
+  financials.declaredCarriageValue = extractFromLines("Declared Carriage Value", financialBlock, ["Declared Value (Carriage)"]);
+  financials.declaredCustomsValue = extractFromLines("Declared Customs Value", financialBlock, ["Declared Value (Customs)"]);
+  financials.weightCharge = extractFromLines("Weight Charge", financialBlock, ["Weight Charge"]);
+  financials.otherCharges = extractFromLines("Other Charges", financialBlock, ["Other Charges"]);
+  financials.totalPrepaid = extractFromLines("Total Prepaid", financialBlock, ["Total Prepaid"]);
+  financials.totalCollect = extractFromLines("Total Collect", financialBlock, ["Total Collect"]);
+  
+  return financials;
+}
 
-  return {
-    issuePlace: fallbackPlace,
-    issueDate: fallbackDate || null,
-  };
+function extractCargoSpecs(lines) {
+  const cargoSpecs = {};
+  const startIdx = lines.findIndex(line => 
+    line.toLowerCase().includes('cargo specifications')
+  );
+  
+  if (startIdx === -1) return null;
+  
+  const cargoBlock = lines.slice(startIdx);
+  
+  cargoSpecs.handlingInfo = extractFromLines("Handling Information", cargoBlock, ["Handling Information"]);
+  cargoSpecs.noOfPieces = extractFromLines("No. of Pieces", cargoBlock, ["No. of Pieces"]);
+  cargoSpecs.grossWeight = extractFromLines("Gross Weight", cargoBlock, ["Gross Weight"]);
+  cargoSpecs.weightUnit = extractFromLines("Weight Unit", cargoBlock, ["Weight Unit"]);
+  cargoSpecs.chargeableWeight = extractFromLines("Chargeable Weight", cargoBlock, ["Chargeable Weight"]);
+  cargoSpecs.natureOfGoods = extractFromLines("Nature/Quantity of Goods", cargoBlock, ["Nature/Quantity of Goods"]);
+  
+  return cargoSpecs;
 }
 
 // ====================== API Endpoint ======================
@@ -95,57 +124,39 @@ app.post('/extract-freight', (req, res) => {
     }
 
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    const { issuePlace, issueDate } = extractIssuePlaceAndDate(text, lines);
-    const signatureRaw = extractFromLines("Shipper Signature", lines, [
-      "Signature of Shipper",
-      "Stamp / Signature",
-    ]);
+    
+    // Extract flight details
+    const flightDetails = extractFlightDetails(lines) || {};
+    
+    // Extract financials
+    const financials = extractFinancials(lines) || {};
+    
+    // Extract cargo specifications
+    const cargoSpecs = extractCargoSpecs(lines) || {};
 
     const extracted = {
-      poNumber: text.match(/PO\s*#?\s*[:\-]?\s*(\d{5,})/i)?.[1] || null,
-      invoiceNumber: text.match(/Invoice\s*#?\s*[:\-]?\s*(INV[\w\-]+)/i)?.[1] || null,
-      awbNumber: extractFromLines("AWB Number", lines, ["AWB Number", "Air Waybill", "KC Number"], { optional: true }),
-      shipperNameAndAddress: extractGroupedBlock(lines, "Shipper/Exporter", ["Name", "Address", "Contact Name", "Contact Phone"]) || extractClientBlock(lines) || null,
-      consigneeNameAndAddress: extractGroupedBlock(lines, "Consignee/Delivery", ["Name", "Address", "Contact Name", "Contact Phone"]) || extractFreightConsignee(lines) || null,
-      importerInfo: extractGroupedBlock(lines, "Importer/Buyer", ["Name", "Address", "Contact Name", "Contact Phone"]) || null,
-      issuingCarrierAgent: extractFromLines("Issuing Carrier Agent", lines, ["Issuing Carrier"], { optional: true }),
-      agentIataCode: extractFromLines("IATA Code", lines, ["IATA Code"], { optional: true }),
-      accountNumber: extractFromLines("Account Number", lines, ["Account Number"], { optional: true }),
-      airportDeparture: extractFromLines("Airport of Departure", lines, ["Airport of Departure", "Pickup Address"], { optional: true }),
-      requestedRouting: extractFromLines("Requested Routing", lines, ["Requested Routing"], { optional: true }),
-      airportDestination: extractFromLines("Destination", lines, ["Destination Airport", "Country of Destination"]),
-      flightDate: extractFromLines("Flight Date", lines, ["Flight", "Pickup Date & Time"], { optional: true }),
-      insuranceAmount: extractFromLines("Insurance Amount", lines, ["Insured Value", "Insurance Amount"], { optional: true }),
-      handlingInfo: extractFromLines("Handling Info", lines, ["Handling Instructions"], { optional: true }),
-      goodsDescription: (() => {
-        const startIdx = lines.findIndex((l) => /(PROTO|TWX|Part\s*#)/i.test(l));
-        if (startIdx === -1) return null;
-        const block = [];
-        for (let i = startIdx; i < lines.length; i++) {
-          if (/^Total\s+(Weight|Invoice Value)|^I declare|^Signature|^Date:/i.test(lines[i])) break;
-          block.push(lines[i]);
-        }
-        return block.join(" ").replace(/\s+/g, " ").trim();
-      })(),
-      weightCharge: extractFromLines("Weight Charge", lines, ["Weight Charge"], { optional: true }),
-      otherCharges: extractFromLines("Other Charges", lines, ["Other Charges"], { optional: true }),
-      totalPrepaid: extractFromLines("Total Prepaid", lines, ["Total Prepaid"], { optional: true }),
-      totalCollect: extractFromLines("Total Collect", lines, ["Total Collect"], { optional: true }),
-      currency: extractFromLines("Currency", lines, ["Currency Used", "Goods Value"])?.match(/[A-Z]{3}|USD|EUR|\$/)?.[0] || null,
-      totalInvoiceValue: extractFromLines("Total Invoice Value", lines, ["Total Invoice Value", "Goods Value"]),
-      totalWeight: text.match(/Total Weight\s*[:\-]?\s*([\d.,]+\s*(kg|KG))/i)?.[1] || 
-                 (text.match(/Gross Weight.*?(\d+)\s*(kg)?/i)?.[1] ? text.match(/Gross Weight.*?(\d+)\s*(kg)?/i)[1] + " kg" : null),
-      declaredCarriageValue: extractFromLines("Declared Carriage Value", lines, ["Declared Value for Carriage"], { optional: true }),
-      declaredCustomsValue: extractFromLines("Declared Customs Value", lines, ["Declared Value for Customs"], { optional: true }),
-      insuranceIfAny: extractFromLines("Insurance (if any)", lines, ["Amount of Insurance (if any)"], { optional: true }),
-      incoterm: extractFromLines("Incoterm", lines, ["Incoterm", "Freight Terms"]),
-      chargesCode: extractFromLines("Charges Code", lines, ["Charges Code"], { optional: true }),
-      shipperSignature: signatureRaw?.replace(/^(Name:|Signature:)/i, "").trim(),
-      jobTitle: extractFromLines("Job Title", lines, ["Job Title"], { optional: true }) || 
-               (signatureRaw?.includes(",") ? signatureRaw?.split(",")[1]?.trim() : null),
-      carrierSignature: extractFromLines("Carrier Signature", lines, ["Signature of Carrier"], { optional: true }),
-      issueDate,
-      issuePlace,
+      awbNumber: extractFromLines("AWB Number", lines, ["AWB Number"]),
+      shipperNameAndAddress: extractAddressBlock(lines, "Shipper's Name/Address"),
+      consigneeNameAndAddress: extractAddressBlock(lines, "Consignee's Name/Address"),
+      airportDeparture: flightDetails.airportDeparture,
+      firstCarrier: flightDetails.firstCarrier,
+      routing: flightDetails.routing,
+      airportDestination: flightDetails.airportDestination,
+      requestedFlight: flightDetails.requestedFlight,
+      insuranceAmount: financials.insuranceAmount,
+      currency: financials.currency,
+      declaredCarriageValue: financials.declaredCarriageValue,
+      declaredCustomsValue: financials.declaredCustomsValue,
+      weightCharge: financials.weightCharge,
+      otherCharges: financials.otherCharges,
+      totalPrepaid: financials.totalPrepaid,
+      totalCollect: financials.totalCollect,
+      handlingInfo: cargoSpecs.handlingInfo,
+      noOfPieces: cargoSpecs.noOfPieces,
+      grossWeight: cargoSpecs.grossWeight,
+      weightUnit: cargoSpecs.weightUnit,
+      chargeableWeight: cargoSpecs.chargeableWeight,
+      natureOfGoods: cargoSpecs.natureOfGoods,
     };
 
     res.json({
