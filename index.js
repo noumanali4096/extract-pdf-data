@@ -7,135 +7,42 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // ====================== Extraction Functions ======================
-function extractFromLines(label, lines, keys, options = { optional: false }) {
+function extractValue(lines, label) {
   for (let i = 0; i < lines.length; i++) {
-    for (let key of keys) {
-      if (lines[i].toLowerCase().includes(key.toLowerCase())) {
-        // Updated to handle bullet points (●) and colons
-        const parts = lines[i].split(/[:\-●]/);
-        const value = parts.slice(1).join(':').trim() || lines[i + 1];
-        if (value) return value.trim();
-      }
+    if (lines[i].includes(label)) {
+      // Split on bullet point or colon
+      const parts = lines[i].split(/[●:]/);
+      if (parts.length > 1) return parts[1].trim();
+      
+      // If no delimiter found, try next line
+      if (i + 1 < lines.length) return lines[i + 1].trim();
     }
   }
-  if (!options.optional) console.warn(`⚠️ ${label} not found.`);
   return null;
 }
 
-function extractGroupedBlock(lines, startLabel, keys) {
-  const idx = lines.findIndex((line) =>
-    line.toLowerCase().includes(startLabel.toLowerCase())
-  );
+function extractAddress(lines, label) {
+  const idx = lines.findIndex(line => line.includes(label));
   if (idx === -1) return null;
   
-  const group = [];
-  // Collect all lines until next section or empty line
-  for (let i = idx + 1; i < lines.length; i++) {
-    if (lines[i].trim() === '' || 
-        lines[i].toLowerCase().includes('flight details:') ||
-        lines[i].toLowerCase().includes('financials:') ||
-        lines[i].toLowerCase().includes('cargo specifications:')) {
-      break;
-    }
-    group.push(lines[i]);
-  }
-  
-  return (
-    keys
-      .map((k) => {
-        const l = group.find((line) =>
-          line.toLowerCase().includes(k.toLowerCase())
-        );
-        return l?.split(/[:#●]/)[1]?.trim();
-      })
-      .filter(Boolean)
-      .join(", ") || null
-  );
-}
-
-function extractAddressBlock(lines, label) {
-  const idx = lines.findIndex((line) =>
-    line.toLowerCase().includes(label.toLowerCase())
-  );
-  if (idx === -1) return null;
-  
-  // Get the immediate next line as the address
-  if (idx + 1 < lines.length && !lines[idx + 1].trim().startsWith('●')) {
+  // Address is typically the next line
+  if (idx + 1 < lines.length) {
     return lines[idx + 1].trim();
   }
   return null;
 }
 
-function extractFlightDetails(lines) {
-  const flightDetails = {};
-  const startIdx = lines.findIndex(line => 
-    line.toLowerCase().includes('flight details')
-  );
+function extractSection(lines, startLabel, endLabel) {
+  const startIdx = lines.findIndex(line => line.includes(startLabel));
+  if (startIdx === -1) return [];
   
-  if (startIdx === -1) return flightDetails;
-  
-  const flightBlock = [];
-  for (let i = startIdx + 1; i < lines.length; i++) {
-    if (lines[i].trim() === '' || lines[i].toLowerCase().includes('financials:')) break;
-    flightBlock.push(lines[i]);
+  let endIdx = lines.length;
+  if (endLabel) {
+    endIdx = lines.findIndex((line, i) => i > startIdx && line.includes(endLabel));
+    if (endIdx === -1) endIdx = lines.length;
   }
-
-  flightDetails.airportDeparture = extractFromLines("Airport of Departure", flightBlock, ["Airport of Departure"]);
-  flightDetails.requestedRouting = extractFromLines("Requested Routing", flightBlock, ["Routing/Destination"]);
-  flightDetails.airportDestination = extractFromLines("Airport of Destination", flightBlock, ["Airport of Destination"]);
-  flightDetails.flightDate = extractFromLines("Flight Date", flightBlock, ["Requested Flight/Date", "Departure"]);
   
-  return flightDetails;
-}
-
-function extractFinancialInfo(lines) {
-  const financials = {};
-  const startIdx = lines.findIndex(line => 
-    line.toLowerCase().includes('financials')
-  );
-  
-  if (startIdx === -1) return financials;
-  
-  const financialBlock = [];
-  for (let i = startIdx + 1; i < lines.length; i++) {
-    if (lines[i].trim() === '' || lines[i].toLowerCase().includes('cargo specifications:')) break;
-    financialBlock.push(lines[i]);
-  }
-
-  financials.insuranceAmount = extractFromLines("Insurance Amount", financialBlock, ["Amount of Insurance"]);
-  financials.currency = extractFromLines("Currency", financialBlock, ["Currency"]);
-  financials.declaredCarriageValue = extractFromLines("Declared Carriage Value", financialBlock, ["Declared Value (Carriage)"]);
-  financials.declaredCustomsValue = extractFromLines("Declared Customs Value", financialBlock, ["Declared Value (Customs)"]);
-  financials.weightCharge = extractFromLines("Weight Charge", financialBlock, ["Weight Charge"]);
-  financials.otherCharges = extractFromLines("Other Charges", financialBlock, ["Other Charges"]);
-  financials.totalPrepaid = extractFromLines("Total Prepaid", financialBlock, ["Total Prepaid"]);
-  financials.totalCollect = extractFromLines("Total Collect", financialBlock, ["Total Collect"]);
-  
-  return financials;
-}
-
-function extractCargoInfo(lines) {
-  const cargoInfo = {};
-  const startIdx = lines.findIndex(line => 
-    line.toLowerCase().includes('cargo specifications')
-  );
-  
-  if (startIdx === -1) return cargoInfo;
-  
-  const cargoBlock = [];
-  for (let i = startIdx + 1; i < lines.length; i++) {
-    if (lines[i].trim() === '') break;
-    cargoBlock.push(lines[i]);
-  }
-
-  cargoInfo.handlingInfo = extractFromLines("Handling Info", cargoBlock, ["Handling Information"]);
-  cargoInfo.noOfPieces = extractFromLines("No. of Pieces", cargoBlock, ["No. of Pieces"]);
-  cargoInfo.grossWeight = extractFromLines("Gross Weight", cargoBlock, ["Gross Weight"]);
-  cargoInfo.weightUnit = extractFromLines("Weight Unit", cargoBlock, ["Weight Unit"]);
-  cargoInfo.chargeableWeight = extractFromLines("Chargeable Weight", cargoBlock, ["Chargeable Weight"]);
-  cargoInfo.natureOfGoods = extractFromLines("Nature of Goods", cargoBlock, ["Nature/Quantity of Goods"]);
-  
-  return cargoInfo;
+  return lines.slice(startIdx, endIdx);
 }
 
 // ====================== API Endpoint ======================
@@ -148,52 +55,71 @@ app.post('/extract-freight', (req, res) => {
     }
 
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    
-    // Extract basic information
-    const awbNumber = extractFromLines("AWB Number", lines, ["AWB Number"]);
-    const shipperNameAndAddress = extractAddressBlock(lines, "Shipper's Name/Address") || 
-                                 extractGroupedBlock(lines, "Shipper/Exporter", ["Name", "Address"]);
-    const consigneeNameAndAddress = extractAddressBlock(lines, "Consignee's Name/Address") || 
-                                   extractGroupedBlock(lines, "Consignee/Delivery", ["Name", "Address"]);
-    
-    // Extract other sections
-    const flightDetails = extractFlightDetails(lines);
-    const financials = extractFinancialInfo(lines);
-    const cargoInfo = extractCargoInfo(lines);
+
+    // Basic Information
+    const basicInfo = extractSection(lines, "Basic Information:", "Flight Details:");
+    const awbNumber = extractValue(basicInfo, "AWB Number");
+    const shipperNameAndAddress = extractAddress(basicInfo, "Shipper's Name/Address");
+    const consigneeNameAndAddress = extractAddress(basicInfo, "Consignee's Name/Address");
+
+    // Flight Details
+    const flightDetails = extractSection(lines, "Flight Details:", "Financials:");
+    const airportDeparture = extractValue(flightDetails, "Airport of Departure");
+    const firstCarrier = extractValue(flightDetails, "By First Carrier");
+    const routing = extractValue(flightDetails, "Routing/Destination");
+    const airportDestination = extractValue(flightDetails, "Airport of Destination");
+    const requestedFlight = extractValue(flightDetails, "Requested Flight/Date");
+
+    // Financials
+    const financials = extractSection(lines, "Financials:", "Cargo Specifications:");
+    const insuranceAmount = extractValue(financials, "Amount of Insurance");
+    const currency = extractValue(financials, "Currency");
+    const declaredCarriageValue = extractValue(financials, "Declared Value (Carriage)");
+    const declaredCustomsValue = extractValue(financials, "Declared Value (Customs)");
+    const weightCharge = extractValue(financials, "Weight Charge");
+    const otherCharges = extractValue(financials, "Other Charges");
+    const totalPrepaid = extractValue(financials, "Total Prepaid");
+    const totalCollect = extractValue(financials, "Total Collect");
+
+    // Cargo Specifications
+    const cargoSpecs = extractSection(lines, "Cargo Specifications:");
+    const handlingInfo = extractValue(cargoSpecs, "Handling Information");
+    const noOfPieces = extractValue(cargoSpecs, "No. of Pieces");
+    const grossWeight = extractValue(cargoSpecs, "Gross Weight");
+    const weightUnit = extractValue(cargoSpecs, "Weight Unit");
+    const chargeableWeight = extractValue(cargoSpecs, "Chargeable Weight");
+    const natureOfGoods = extractValue(cargoSpecs, "Nature/Quantity of Goods");
 
     const extracted = {
       awbNumber,
       shipperNameAndAddress,
       consigneeNameAndAddress,
-      airportDeparture: flightDetails.airportDeparture,
-      requestedRouting: flightDetails.requestedRouting,
-      airportDestination: flightDetails.airportDestination,
-      flightDate: flightDetails.flightDate,
-      insuranceAmount: financials.insuranceAmount,
-      currency: financials.currency,
-      declaredCarriageValue: financials.declaredCarriageValue,
-      declaredCustomsValue: financials.declaredCustomsValue,
-      weightCharge: financials.weightCharge,
-      otherCharges: financials.otherCharges,
-      totalPrepaid: financials.totalPrepaid,
-      totalCollect: financials.totalCollect,
-      handlingInfo: cargoInfo.handlingInfo,
-      noOfPieces: cargoInfo.noOfPieces,
-      grossWeight: cargoInfo.grossWeight,
-      weightUnit: cargoInfo.weightUnit,
-      chargeableWeight: cargoInfo.chargeableWeight,
-      natureOfGoods: cargoInfo.natureOfGoods,
-      // These fields will be null in the new format
+      airportDeparture,
+      firstCarrier,
+      routing,
+      airportDestination,
+      requestedFlight,
+      insuranceAmount,
+      currency,
+      declaredCarriageValue,
+      declaredCustomsValue,
+      weightCharge,
+      otherCharges,
+      totalPrepaid,
+      totalCollect,
+      handlingInfo,
+      noOfPieces,
+      grossWeight,
+      weightUnit,
+      chargeableWeight,
+      natureOfGoods,
+      // Fields not in your document
       poNumber: null,
       invoiceNumber: null,
       importerInfo: null,
       issuingCarrierAgent: null,
       agentIataCode: null,
       accountNumber: null,
-      goodsDescription: cargoInfo.natureOfGoods, // Map nature of goods to description
-      totalInvoiceValue: financials.insuranceAmount, // Map insurance amount as fallback
-      totalWeight: cargoInfo.grossWeight,
-      insuranceIfAny: financials.insuranceAmount,
       incoterm: null,
       chargesCode: null,
       shipperSignature: null,
