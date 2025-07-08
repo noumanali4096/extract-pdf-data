@@ -1,9 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-// const puppeteer = require("puppeteer")
+const puppeteer = require("puppeteer")
 const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
+// const puppeteer = require('puppeteer-core');
 const fs = require("fs/promises");
 const app = express();
 app.use(bodyParser.json());
@@ -193,8 +193,12 @@ app.post("/generate-pdf", async (req, res) => {
     // });
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(
+        process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser'
+      ),
       headless: chromium.headless,
+      defaultViewport: chromium.defaultViewport,
+      ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();
 
