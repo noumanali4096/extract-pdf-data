@@ -187,8 +187,7 @@ app.post("/generate-pdf", async (req, res) => {
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",  // Important for cloud environments
         "--single-process"          // May be needed for Render.com
-      ],
-      executablePath: "/usr/bin/chromium"
+      ]
     });
 
     const page = await browser.newPage();
