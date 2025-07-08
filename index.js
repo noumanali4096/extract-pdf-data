@@ -187,7 +187,7 @@ app.post("/generate-pdf", async (req, res) => {
         "--disable-dev-shm-usage",  // Important for cloud environments
         "--single-process"          // May be needed for Render.com
       ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium"
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser'
     });
 
     const page = await browser.newPage();
