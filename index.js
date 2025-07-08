@@ -24,11 +24,11 @@ function extractValueFromSection(section, key) {
 function extractFlightInfo(text) {
   const flightSection = extractSection(text, 'Flight Details');
   if (!flightSection) return {};
-  
+
   const flightNumberMatch = flightSection.match(/Flight ([A-Z0-9]+)/i);
   const departureMatch = flightSection.match(/Departure: (\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})/i);
   const routingMatch = flightSection.match(/Routing\/Destination: ([^●]+)/i);
-  
+
   return {
     flightNumber: flightNumberMatch ? flightNumberMatch[1] : null,
     departureDateTime: departureMatch ? departureMatch[1] : null,
@@ -39,9 +39,9 @@ function extractFlightInfo(text) {
 function extractFinancials(text) {
   const financialsSection = extractSection(text, 'Financials');
   if (!financialsSection) return {};
-  
+
   const amountRegex = /([€$£]?[\d,]+\.?\d*)/g;
-  
+
   return {
     insuranceAmount: extractValueFromSection(financialsSection, 'Amount of Insurance'),
     currency: extractValueFromSection(financialsSection, 'Currency'),
@@ -57,11 +57,11 @@ function extractFinancials(text) {
 function extractCargoSpecs(text) {
   const cargoSection = extractSection(text, 'Cargo Specifications');
   if (!cargoSection) return {};
-  
+
   const weightMatch = cargoSection.match(/Gross Weight: ([\d.]+) (\w+)/i);
   const chargeableWeightMatch = cargoSection.match(/Chargeable Weight: ([\d.]+ \w+)/i);
   const piecesMatch = cargoSection.match(/No\. of Pieces: ([\d]+ \w+)/i);
-  
+
   return {
     handlingInfo: extractValueFromSection(cargoSection, 'Handling Information'),
     numberOfPieces: piecesMatch ? piecesMatch[1] : null,
@@ -74,7 +74,7 @@ function extractCargoSpecs(text) {
 app.post('/extract-freight', (req, res) => {
   try {
     const { text } = req.body;
-    
+
     if (!text) {
       return res.status(400).json({ error: "OCR text is required" });
     }
@@ -102,12 +102,12 @@ app.post('/extract-freight', (req, res) => {
       departureAirport: extractValueFromSection(text, 'Airport of Departure'),
       destinationAirport: extractValueFromSection(text, 'Airport of Destination'),
       requestedFlight: extractValueFromSection(text, 'Requested Flight/Date'),
-      
+
       // Flight Details
       flightNumber: extractValueFromSection(text, 'Flight Number'),
       departureDateTime: extractValueFromSection(text, 'Departure Date/Time'),
       routing: extractValueFromSection(text, 'Routing/Destination'),
-      
+
       // Financials
       insuranceAmount: extractValueFromSection(text, 'Amount of Insurance'),
       currency: extractValueFromSection(text, 'Currency'),
@@ -117,7 +117,7 @@ app.post('/extract-freight', (req, res) => {
       otherCharges: extractValueFromSection(text, 'Other Charges'),
       totalPrepaid: extractValueFromSection(text, 'Total Prepaid'),
       totalCollect: extractValueFromSection(text, 'Total Collect'),
-      
+
       // Cargo Specifications
       handlingInfo: extractValueFromSection(text, 'Handling Information'),
       numberOfPieces: extractValueFromSection(text, 'No. of Pieces'),
@@ -181,7 +181,13 @@ app.post("/generate-pdf", async (req, res) => {
 
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",  // Important for cloud environments
+        "--single-process"          // May be needed for Render.com
+      ],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium"
     });
 
     const page = await browser.newPage();
@@ -199,8 +205,13 @@ app.post("/generate-pdf", async (req, res) => {
       landscape: false,
     });
 
-    await browser.close();
-    fs.writeFile("./awb.pdf", pdfBuffer)
+    // await browser.close();
+    // fs.writeFile("./awb.pdf", pdfBuffer)
+    try {
+      await fs.writeFile("./awb.pdf", pdfBuffer);
+    } catch (writeErr) {
+      console.error("Warning: Failed to save PDF copy:", writeErr);
+    }
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", 'inline; filename="awb.pdf"'); // for download4
 
@@ -210,6 +221,8 @@ app.post("/generate-pdf", async (req, res) => {
   } catch (err) {
     console.error("Error generating PDF:", err);
     res.status(500).send("PDF generation failed");
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
