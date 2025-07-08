@@ -82,16 +82,47 @@ app.post('/extract-freight', (req, res) => {
     const financials = extractFinancials(text);
     const cargoSpecs = extractCargoSpecs(text);
 
+    // const extractedData = {
+    //   awbNumber: extractValueFromSection(text, 'AWB Number'),
+    //   shipperInfo: extractValueFromSection(text, 'Shipper\'s Name/Address'),
+    //   consigneeInfo: extractValueFromSection(text, 'Consignee\'s Name/Address'),
+    //   departureAirport: extractValueFromSection(text, 'Airport of Departure'),
+    //   destinationAirport: extractValueFromSection(text, 'Airport of Destination'),
+    //   requestedFlight: extractValueFromSection(text, 'Requested Flight/Date'),
+    //   ...flightInfo,
+    //   ...financials,
+    //   ...cargoSpecs
+    // };
     const extractedData = {
+      // Basic Information
       awbNumber: extractValueFromSection(text, 'AWB Number'),
       shipperInfo: extractValueFromSection(text, 'Shipper\'s Name/Address'),
       consigneeInfo: extractValueFromSection(text, 'Consignee\'s Name/Address'),
       departureAirport: extractValueFromSection(text, 'Airport of Departure'),
       destinationAirport: extractValueFromSection(text, 'Airport of Destination'),
       requestedFlight: extractValueFromSection(text, 'Requested Flight/Date'),
-      ...flightInfo,
-      ...financials,
-      ...cargoSpecs
+      
+      // Flight Details
+      flightNumber: extractValueFromSection(text, 'Flight Number'),
+      departureDateTime: extractValueFromSection(text, 'Departure Date/Time'),
+      routing: extractValueFromSection(text, 'Routing/Destination'),
+      
+      // Financials
+      insuranceAmount: extractValueFromSection(text, 'Amount of Insurance'),
+      currency: extractValueFromSection(text, 'Currency'),
+      declaredValueCarriage: extractValueFromSection(text, 'Declared Value \\(Carriage\\)'),
+      declaredValueCustoms: extractValueFromSection(text, 'Declared Value \\(Customs\\)'),
+      weightCharge: extractValueFromSection(text, 'Weight Charge'),
+      otherCharges: extractValueFromSection(text, 'Other Charges'),
+      totalPrepaid: extractValueFromSection(text, 'Total Prepaid'),
+      totalCollect: extractValueFromSection(text, 'Total Collect'),
+      
+      // Cargo Specifications
+      handlingInfo: extractValueFromSection(text, 'Handling Information'),
+      numberOfPieces: extractValueFromSection(text, 'No. of Pieces'),
+      grossWeight: extractValueFromSection(text, 'Gross Weight'),
+      chargeableWeight: extractValueFromSection(text, 'Chargeable Weight'),
+      goodsDescription: extractValueFromSection(text, 'Nature/Quantity of Goods')
     };
 
     res.json({
