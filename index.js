@@ -173,6 +173,7 @@ app.post("/extract-freight", (req, res) => {
 });
 
 app.post("/generate-pdf", async (req, res) => {
+  console.log("Received body:", req.body);
   try {
     let html = await fs.readFile("./AWB.html", "utf8");
 
