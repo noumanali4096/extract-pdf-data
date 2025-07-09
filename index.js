@@ -177,6 +177,7 @@ app.post("/generate-pdf", async (req, res) => {
     let html = await fs.readFile("./AWB.html", "utf8");
 
     const keys = [
+      "awbNumber",
       "shipperName",
       "shipperAccountNumber",
       "consigneeName",
