@@ -125,7 +125,8 @@ app.post('/extract-freight', (req, res) => {
       numberOfPieces: extractValueFromSection(text, 'No. of Pieces'),
       grossWeight: extractValueFromSection(text, 'Gross Weight'),
       chargeableWeight: extractValueFromSection(text, 'Chargeable Weight'),
-      goodsDescription: extractValueFromSection(text, 'Nature/Quantity of Goods')
+      goodsDescription: extractValueFromSection(text, 'Nature/Quantity of Goods'),
+      byFirstCarrier: extractValueFromSection(text, 'By First Carrier')
     };
 
     res.json({
