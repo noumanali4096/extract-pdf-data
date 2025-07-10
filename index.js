@@ -17,9 +17,16 @@ function extractSection(text, sectionTitle) {
   return match ? match[0] : null;
 }
 
+// function extractValueFromSection(section, key) {
+//   if (!section) return null;
+//   const regex = new RegExp(`● ${key}[\\s:]+([^●]+)`, "i");
+//   const match = section.match(regex);
+//   return match ? match[1].trim() : null;
+// }
+
 function extractValueFromSection(section, key) {
   if (!section) return null;
-  const regex = new RegExp(`● ${key}[\\s:]+([^●]+)`, "i");
+  const regex = new RegExp(`● ${key}[\\s:]+([^\n●]+)`, "i");  // stop at newline or bullet
   const match = section.match(regex);
   return match ? match[1].trim() : null;
 }
