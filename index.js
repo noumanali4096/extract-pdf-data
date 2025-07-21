@@ -236,22 +236,20 @@ app.post("/generate-pdf", async (req, res) => {
     const file = { content: html };
     const options = {
       format: 'A4',
-      margin: {
-        top: '10mm',
-        right: '10mm',
-        bottom: '10mm',
-        left: '10mm'
-      },
       printBackground: true
     };
     const pdfBuffer = await pdf.generatePdf(file, options);
-    // await fs.writeFile("./awb.pdf", pdfBuffer);
+    // const fileName = req.body?.fileName ? `${req.body.fileName}.pdf` : 'awb.pdf';
 
-    const fileName = req.body?.fileName ? `${req.body.fileName}.pdf` : 'awb.pdf';
-    await fs.writeFile(`./${fileName}`, pdfBuffer);
+    const rawFileName = req.body?.fileName?.trim() || "default-name";
+    const finalFileName = `AWB-${rawFileName}.pdf`;
+    // await fs.writeFile(`./${fileName}`, pdfBuffer);
+    await fs.writeFile(`./${finalFileName}`, pdfBuffer);
+    
+
     res.setHeader("Content-Type", "application/pdf");
-    // res.setHeader("Content-Disposition", 'inline; filename="awb.pdf"');
-    res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
+    // res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
+    res.setHeader("Content-Disposition", `inline; filename="${finalFileName}"`);
     res.send(pdfBuffer);
   } catch (err) {
     console.error("Full PDF generation error:", { message: err.message });
