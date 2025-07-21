@@ -214,6 +214,18 @@ app.post("/generate-pdf", async (req, res) => {
       "weightChargeCollectValue",
       "shipperSignatureValue",
       "carrierSignatureValue",
+      "valuationChargePrepaidValue",
+      "valuationChargeCollectValue",
+      "taxPrepaidValue",
+      "taxCollectValue",
+      "prepaidChargesByAgent",
+      "collectChargesByAgent",
+      "prepaidChargesByCarrier",
+      "collectChargesByCarrier",
+      "totalPrepaidCharges",
+      "totalCollectCharges",
+      "issuePlace",
+      "issueDate",
     ];
 
     for (const key of keys) {
@@ -222,11 +234,24 @@ app.post("/generate-pdf", async (req, res) => {
     }
 
     const file = { content: html };
-    const pdfBuffer = await pdf.generatePdf(file, { format: "A4" });
-    await fs.writeFile("./awb.pdf", pdfBuffer);
+    const options = {
+      format: 'A4',
+      margin: {
+        top: '10mm',
+        right: '10mm',
+        bottom: '10mm',
+        left: '10mm'
+      },
+      printBackground: true
+    };
+    const pdfBuffer = await pdf.generatePdf(file, options);
+    // await fs.writeFile("./awb.pdf", pdfBuffer);
 
+    const fileName = req.body?.fileName ? `${req.body.fileName}.pdf` : 'awb.pdf';
+    await fs.writeFile(`./${fileName}`, pdfBuffer);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'inline; filename="awb.pdf"');
+    // res.setHeader("Content-Disposition", 'inline; filename="awb.pdf"');
+    res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
     res.send(pdfBuffer);
   } catch (err) {
     console.error("Full PDF generation error:", { message: err.message });
