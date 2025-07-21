@@ -461,15 +461,15 @@
               this consignment are fully and accurately described above by proper shipping name and are classified,
               packaged, marked and labeled, and in proper condition for carriage by air according to applicable national
               governmental regulations.</div>
-            <p style="text-align: center; margin-top: 45px;">{{shipperSignatureValue}}</p>
+            <p style="text-align: center; margin-top: 20px;">{{shipperSignatureValue}}</p>
             <div
               style="border-top: 1px dashed; position: absolute; bottom: 0; width: 100%; text-align: center; padding: 5px;">
 
               Signature of Shipper or his Agent
             </div>
           </div>
-          <div style="position: relative; height: 150px;">
-            <div style="padding: 5px;">
+          <div style="position: relative; height: 150px; font-size: 12px; box-sizing: border-box;">
+            <div style="padding: 5px; margin-bottom: 35px;">
               I hereby certify that the particulars on the face hereof are correct and that
               insofar as any part of the consignment contains dangerous goods. I hereby certify
               that the contents of this consignment are fully and accurately described above
@@ -478,19 +478,32 @@
               governmental regulations.
             </div>
 
-            <!-- Aligned details -->
+            <!-- Values Row -->
             <div
-              style="display: flex; flex-direction: row; justify-content: space-between; padding: 0 5px; margin-top: 25px;">
-              <p style="margin: 0; text-align: left;">{{issuePlace}}</p>
-              <p style="margin: 0; text-align: center;">{{carrierSignatureValue}}</p>
-              <p style="margin: 0; text-align: right;">{{issueDate}}</p>
+              style="display: flex; justify-content: space-between; padding: 0 5px; text-align: center; margin-bottom: 10px;">
+              <div style="flex: 1;">
+                <p style="margin: 0;">{{issuePlace}}</p>
+              </div>
+              <div style="flex: 1;">
+                <p style="margin: 0;">{{carrierSignatureValue}}</p>
+              </div>
+              <div style="flex: 1;">
+                <p style="margin: 0;">{{issueDate}}</p>
+              </div>
             </div>
 
-            <!-- Footer line and labels -->
-            <div style="border-top: 1px dashed; position: absolute; bottom: 0; width: 100%; text-align: center;">
-              <div style="display: flex; flex-direction: row; justify-content: space-between; padding: 5px;">
+            <!-- Lower Dashed Line -->
+            <div style="border-top: 1px dashed; margin-bottom: 5px;"></div>
+
+            <!-- Labels Row -->
+            <div style="display: flex; justify-content: space-between; padding: 0 5px; text-align: center;">
+              <div style="flex: 1;">
                 <div>Executed on (place)</div>
+              </div>
+              <div style="flex: 1;">
                 <div>'Carrier's Signature</div>
+              </div>
+              <div style="flex: 1;">
                 <div>Executed on (date)</div>
               </div>
             </div>
