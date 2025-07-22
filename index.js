@@ -263,17 +263,14 @@ app.post("/generate-pdf", async (req, res) => {
 
 app.post('/transform-awb-stock', async (req, res) => {
   try {
-    const { pdfCoResponse } = req.body;
+    const { text } = req.body;
 
-    if (!pdfCoResponse || !Array.isArray(pdfCoResponse)) {
-      return res.status(400).json({ 
-        success: false,
-        error: "Invalid PDF.co response format" 
-      });
+    if (!text) {
+      return res.status(400).json({ error: "Body text is required" });
     }
 
     // Skip header row and process data
-    const transformedData = pdfCoResponse.slice(1).map(row => {
+    const transformedData = text.slice(1).map(row => {
       // Convert dates to ISO format (compatible with Bubble)
       const issueDate = row.Column4 ? new Date(row.Column4).toISOString() : null;
       const usedDate = row.Column6 ? new Date(row.Column6).toISOString() : null;
