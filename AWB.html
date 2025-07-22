@@ -135,7 +135,7 @@
             Airport of Departure (Addr. of First Carrier)
             <p>{{departure}}</p>
           </div>
-          <div style="display: flex; flex-direction: row; height: 60px; border-bottom: 1px solid;">
+          <div style="display: flex; flex-direction: row; height: 70px; border-bottom: 1px solid;">
             <div style="width: 10%; padding: 5px;">
               <div>T0</div>
               <p></p>
@@ -163,7 +163,7 @@
               <p></p>
             </div>
           </div>
-          <div style="display: flex; flex-direction: row; height: 60px;">
+          <div style="display: flex; flex-direction: row; height: 70px;">
             <div style="width: 50%; padding: 5px; text-align: center; border: 1px solid;">
               <div>Airport of Destination</div>
               <p>{{destination}}</p>
@@ -227,53 +227,69 @@
           </div>
           <div style="border-bottom: 1px solid;">
             <div style="display: flex; flex-direction: row; justify-content: space-between;">
-              <div style="width: 33%; display: flex; flex-direction: row; height: 60px;">
-                <div style="width: 30%; padding: 5px;">
+              <!-- Currency and Charges Section -->
+              <div style="width: 33%; height: 60px; display: flex; min-width: 200px;">
+                <!-- Currency -->
+                <div style="width: 30%; padding: 5px; box-sizing: border-box; overflow: hidden;">
                   <div>Currency</div>
-                  <p>{{currency}}</p>
+                  <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{currency}}</p>
                 </div>
-                <div style="width: 15%; padding: 5px; border-left: 1px solid; font-size: 8px; background: #ccc;">
+
+                <!-- CHGS Box -->
+                <div
+                  style="width: 15%; padding: 5px; border-left: 1px solid; font-size: 8px; background: #ccc; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>CHGS</div>
-                  <p></p>
+                  <p style="visibility: hidden;">-</p> <!-- Maintains consistent height -->
                 </div>
-                <div style="width: 55%; display: flex; flex-direction: column; font-size: 8px;">
-                  <div
-                    style="display: flex; flex-direction: row; justify-content: space-between; font-size: 12px; border-bottom: 1px solid;">
-                    <div style="width: 48%; padding: 5px; border-left: 1px solid; font-size: 8px;">
-                      <div>WT/VAL</div>
+
+                <!-- WT/VAL and Other Section -->
+                <div style="width: 55%; display: flex; flex-direction: column; font-size: 8px; box-sizing: border-box;">
+                  <!-- Header Row -->
+                  <div style="display: flex; border-bottom: 1px solid; height: 50%;">
+                    <div
+                      style="width: 50%; padding: 2px; border-left: 1px solid; display: flex; align-items: center; justify-content: center;">
+                      <div style="text-align: center;">WT/VAL</div>
                     </div>
-                    <div style="width: 48%; padding: 5px; border-left: 1px solid; font-size: 8px;">
-                      <div>Other</div>
+                    <div
+                      style="width: 50%; padding: 2px; border-left: 1px solid; display: flex; align-items: center; justify-content: center;">
+                      <div style="text-align: center;">Other</div>
                     </div>
                   </div>
-                  <div
-                    style="display: flex; flex-direction: row; justify-content: space-between; font-size: 8px; height: 100%;">
-                    <div style="width: 25%; padding: 5px; border-left: 1px solid;">
+
+                  <!-- PPD/COLL Row -->
+                  <div style="display: flex; height: 50%;">
+                    <div
+                      style="width: 25%; padding: 2px; border-left: 1px solid; display: flex; align-items: center; justify-content: center;">
                       <div>PPD</div>
-                      <p></p>
                     </div>
-                    <div style="width: 25%; padding: 5px; border-left: 1px solid;">
+                    <div
+                      style="width: 25%; padding: 2px; border-left: 1px solid; display: flex; align-items: center; justify-content: center;">
                       <div>COLL</div>
-                      <p></p>
                     </div>
-                    <div style="width: 25%; padding: 5px; border-left: 1px solid;">
+                    <div
+                      style="width: 25%; padding: 2px; border-left: 1px solid; display: flex; align-items: center; justify-content: center;">
                       <div>PPD</div>
-                      <p></p>
                     </div>
-                    <div style="width: 25%; padding: 5px; border-left: 1px solid;">
+                    <div
+                      style="width: 25%; padding: 2px; border-left: 1px solid; display: flex; align-items: center; justify-content: center;">
                       <div>COLL</div>
-                      <p></p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div style="width: 31.5%; padding: 5px; border-left: 1px solid; text-align: center;">
+
+              <!-- Declared Value for Carriage -->
+              <div
+                style="width: 31.5%; padding: 5px; border-left: 1px solid; text-align: center; box-sizing: border-box; min-width: 150px;">
                 <div>Declared Value for Carriage</div>
-                <p>{{declaredCarriageValue}}</p>
+                <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{declaredCarriageValue}}</p>
               </div>
-              <div style="width: 31.5%; padding: 5px; border-left: 1px solid; text-align: center;">
+
+              <!-- Declared Value for Customs -->
+              <div
+                style="width: 31.5%; padding: 5px; border-left: 1px solid; text-align: center; box-sizing: border-box; min-width: 150px;">
                 <div>Declared Value for Customs</div>
-                <p>{{declaredCustomsValue}}</p>
+                <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{declaredCustomsValue}}</p>
               </div>
             </div>
           </div>
