@@ -259,6 +259,103 @@ app.post("/generate-pdf", async (req, res) => {
   }
 });
 
+// Add this endpoint to your existing Express app
+
+app.post('/transform-awb-stock', async (req, res) => {
+  try {
+    const { pdfCoResponse } = req.body;
+
+    if (!pdfCoResponse || !Array.isArray(pdfCoResponse)) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Invalid PDF.co response format" 
+      });
+    }
+
+    // Skip header row and process data
+    const transformedData = pdfCoResponse.slice(1).map(row => {
+      // Convert dates to ISO format (compatible with Bubble)
+      const issueDate = row.Column4 ? new Date(row.Column4).toISOString() : null;
+      const usedDate = row.Column6 ? new Date(row.Column6).toISOString() : null;
+
+      return {
+        // Basic AWB Information
+        awbNumber: row.Column0 || null,
+        airline: {
+          code: row.Column1 || null,
+          name: row.Column2 || null
+        },
+        agent: {
+          code: row.Column3 || null,
+        },
+        
+        // Dates
+        dates: {
+          issue: issueDate,
+          used: usedDate,
+          // Add additional date fields if needed
+        },
+        
+        // Status Information
+        status: {
+          current: row.Column5 || 'Unknown',
+          previous: null, // Can be populated for history tracking
+        },
+        
+        // Allocation Details
+        allocation: {
+          batch: row.Column7 || null,
+          rangeType: row.Column8 || 'Normal',
+          notes: null // Optional field for future use
+        },
+        
+        // System Metadata
+        metadata: {
+          source: 'PDF.co Excel Import',
+          importedAt: new Date().toISOString(),
+          processedBy: 'AWB Stock Processor',
+          version: '1.0'
+        },
+        
+        // Compatibility with your existing freight data structure
+        flightInfo: null, // Can be populated later
+        financials: null, // Can be populated later
+        cargoSpecs: null  // Can be populated later
+      };
+    });
+
+    // Generate statistics
+    const statusCounts = transformedData.reduce((acc, item) => {
+      acc[item.status.current] = (acc[item.status.current] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      success: true,
+      data: transformedData,
+      stats: {
+        totalRecords: transformedData.length,
+        statusCounts,
+        airlines: [...new Set(transformedData.map(x => x.airline.code))],
+        dateRange: {
+          earliest: transformedData.reduce((min, item) => 
+            item.dates.issue && (!min || item.dates.issue < min) ? item.dates.issue : min, null),
+          latest: transformedData.reduce((max, item) => 
+            item.dates.issue && (!max || item.dates.issue > max) ? item.dates.issue : max, null)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('AWB Stock Transformation error:', error);
+    res.status(500).json({
+      success: false,
+      error: "AWB Stock data transformation failed",
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Freight API V2 running on port ${PORT}`));
