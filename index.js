@@ -227,6 +227,8 @@ app.post("/generate-pdf", async (req, res) => {
       "issuePlace",
       "issueDate",
       "rateClassValue",
+      "issuedBy",
+      "requestedFlight",
     ];
 
     for (const key of keys) {
