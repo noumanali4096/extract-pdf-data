@@ -80,7 +80,7 @@
 
     .awb-wrapper {
       width: 95%;
-      margin: 5px auto;
+      margin: 15px auto;
     }
   </style>
 </head>
@@ -93,7 +93,7 @@
     <div class="border-1" style="width: 100%;">
       <div style="display: flex; flex-direction: row;">
         <div style="width: 50%; min-width: 450px; border-right: 1px solid;">
-          <div style="border-bottom: 1px solid; height: 132px;">
+          <div style="border-bottom: 1px solid; height: 110px;">
             <div style="display: flex; flex-direction: row;">
               <div style="width: 50%; padding: 5px;">
                 Shipper’s Name and Address
@@ -117,11 +117,11 @@
                 <p style="font-size: 10pt;">{{consigneeAccountNumber}}</p>
               </div>
             </div>
-            <div style="width: 100%; height: 70px; padding: 5px;">
+            <div style="width: 100%; height: 55px; padding: 5px;">
               <p></p>
             </div>
           </div>
-          <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 69px;">
+          <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 55px;">
             Issuing Carrier’s Agent Name and City
             <p style="font-size: 10pt;">{{agentName}}</p>
           </div>
@@ -130,12 +130,12 @@
               Agent's IATA Code
               <p style="text-align: center; font-size: 10pt;">{{agentIATACode}}</p>
             </div>
-            <div style="width: 50%; padding: 5px; height: 50px;" class="border-1 border-t-0 border-r-0 border-b-0">
+            <div style="width: 50%; padding: 5px; height: 40px;" class="border-1 border-t-0 border-r-0 border-b-0">
               Account No.
               <p style="text-align: center; font-size: 10pt;">{{agentAccountNumber}}</p>
             </div>
           </div>
-          <div style="display: flex; flex-direction: column; padding: 5px; height: 42px; border-bottom: 1px solid;">
+          <div style="display: flex; flex-direction: column; padding: 5px; height: 41px; border-bottom: 1px solid;">
             Airport of Departure (Addr. of First Carrier)
             <p style="font-size: 10pt;">{{departure}}</p>
           </div>
@@ -147,7 +147,7 @@
             <div style="display:flex; flex-direction: column; width: 50%; border-left: 1px solid;">
               <div style="display: flex; flex-direction: row;">
                 <div style="padding: 2px 5px;">By First Carrier</div>
-                <div style="border: 1px solid; border-top: 0; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; padding: 2px 5px; font-size: 8pt; text-align: center;">Routing and Destination</div>
+                <div style="border: 1px solid; border-top: 0; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; padding: 2px 5px; font-size: 8pt;">Routing and Destination</div>
               </div>
               <p style="padding: 5px; font-size: 10pt;">{{byFirstCarrier}}</p>
             </div>
@@ -189,7 +189,7 @@
           </div>
         </div>
         <div style="width: 50%; min-width: 450px;">
-          <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 99px;">
+          <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 77px;">
             <div>Not Negotiable </div>
             <h3 style="margin: 0;">Air Waybill </h3>
             <div>issued by 
@@ -201,7 +201,7 @@
           <div style="display: flex; padding: 5px; border-bottom: 1px solid;">
             Copies 1, 2 and 3 of this Air Waybill are originals and have the same validity.
           </div>
-          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 131px; font-size: 8pt">
+          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 116px; font-size: 8pt">
             It is agreed that the goods declared herein are accepted in apparent good order and condition (except as
             noted) for carriage SUBJECT TO THE CONDITIONS OF CONTRACT ON THE REVERSE HEREOF. ALL GOODS MAY BE CARRIED BY
             ANY OTHER MEANS INCLUDING ROAD OR ANY OTHER CARRIER UNLESS SPECIFIC CONTRARY INSTRUCTIONS ARE GIVEN HEREON
@@ -210,7 +210,7 @@
             LIMITATION OF LIABILITY. Shipper may increase such limitation of liability by declaring a higher value for
             carriage and paying a supplemental charge if required.
           </div>
-          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 131px;">
+          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 106px;">
             Accounting Information
           </div>
           <div style="border-bottom: 1px solid;">
@@ -488,9 +488,11 @@
             <div style="display: flex; flex-direction: row; justify-content: space-between; height: 35px;">
               <div
                 style="border: 1px solid; border-right: 0; border-top: 0; padding: 3px 5px; width: 48%; margin: 0 auto; text-align: center; font-size: 10pt;">
+                
               </div>
               <div
                 style="border: 1px solid; border-top: 0; padding: 3px 5px; width: 48%; margin: 0 auto; text-align: center; font-size: 10pt;">
+                
               </div>
             </div>
           </div>
@@ -529,10 +531,10 @@
             </div>
             <div style="display: flex; flex-direction: row; height: 30px;">
               <div style="width: 50%; padding: 5px; text-align: center;">
-                <p>{{cCRate}}</p>
+                <p style="font-size: 10pt;">{{cCRate}}</p>
               </div>
               <div style="width: 50%; padding: 5px; text-align: center; border-left: 1px solid;">
-                <p>{{cCCharges}}</p>
+                <p style="font-size: 10pt;">{{cCCharges}}</p>
               </div>
             </div>
           </div>
