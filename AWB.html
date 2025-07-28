@@ -92,7 +92,7 @@
     </div>
     <div class="border-1" style="width: 100%;">
       <div style="display: flex; flex-direction: row;">
-        <div style="width: 50%; border-right: 1px solid;">
+        <div style="width: 50%; min-width: 450px; border-right: 1px solid;">
           <div style="border-bottom: 1px solid; height: 110px;">
             <div style="display: flex; flex-direction: row;">
               <div style="width: 50%; padding: 5px;">
@@ -117,11 +117,11 @@
                 <p style="font-size: 10pt;">{{consigneeAccountNumber}}</p>
               </div>
             </div>
-            <div style="width: 100%; height: 59px; padding: 5px;">
+            <div style="width: 100%; height: 55px; padding: 5px;">
               <p></p>
             </div>
           </div>
-          <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 45px;">
+          <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 50px;">
             Issuing Carrier’s Agent Name and City
             <p style="font-size: 10pt;">{{agentName}}</p>
           </div>
@@ -130,16 +130,16 @@
               Agent's IATA Code
               <p style="text-align: center; font-size: 10pt;">{{agentIATACode}}</p>
             </div>
-            <div style="width: 50%; padding: 5px; height: 30px;" class="border-1 border-t-0 border-r-0 border-b-0">
+            <div style="width: 50%; padding: 5px; height: 35px;" class="border-1 border-t-0 border-r-0 border-b-0">
               Account No.
               <p style="text-align: center; font-size: 10pt;">{{agentAccountNumber}}</p>
             </div>
           </div>
-          <div style="display: flex; flex-direction: column; padding: 5px; height: 35px; border-bottom: 1px solid;">
+          <div style="display: flex; flex-direction: column; padding: 5px; height: 41px; border-bottom: 1px solid;">
             Airport of Departure (Addr. of First Carrier)
             <p style="font-size: 10pt;">{{departure}}</p>
           </div>
-          <div style="display: flex; flex-direction: row; height: 57px; border-bottom: 1px solid;">
+          <div style="display: flex; flex-direction: row; height: 60px; border-bottom: 1px solid;">
             <div style="width: 10%; padding: 5px;">
               <div>T0</div>
               <p></p>
@@ -188,7 +188,7 @@
             </div>
           </div>
         </div>
-        <div style="width: 50%;">
+        <div style="width: 50%; min-width: 450px;">
           <div style="display: flex; flex-direction: column; padding: 5px; border-bottom: 1px solid; height: 77px;">
             <div>Not Negotiable </div>
             <h3 style="margin: 0;">Air Waybill </h3>
@@ -201,7 +201,7 @@
           <div style="display: flex; padding: 5px; border-bottom: 1px solid;">
             Copies 1, 2 and 3 of this Air Waybill are originals and have the same validity.
           </div>
-          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 120px; font-size: 8pt">
+          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 116px; font-size: 8pt">
             It is agreed that the goods declared herein are accepted in apparent good order and condition (except as
             noted) for carriage SUBJECT TO THE CONDITIONS OF CONTRACT ON THE REVERSE HEREOF. ALL GOODS MAY BE CARRIED BY
             ANY OTHER MEANS INCLUDING ROAD OR ANY OTHER CARRIER UNLESS SPECIFIC CONTRARY INSTRUCTIONS ARE GIVEN HEREON
@@ -210,17 +210,17 @@
             LIMITATION OF LIABILITY. Shipper may increase such limitation of liability by declaring a higher value for
             carriage and paying a supplemental charge if required.
           </div>
-          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 86px;">
+          <div style="display: flex; padding: 5px; border-bottom: 1px solid; height: 96px;">
             Accounting Information
           </div>
           <div style="border-bottom: 1px solid;">
             <div style="display: flex; flex-direction: row; justify-content: space-between;">
               <div style="width: 33.333%; padding: 2px 5px; text-align: center;">Reference Number </div>
-              <div style="width: 33.333%; padding: 2px 5px; border: 1px solid; border-top: 0; text-align: center; font-size: 7pt;">Optional
+              <div style="width: 33.333%; padding: 2px 5px; border: 1px solid; border-top: 0; text-align: center;">Optional
                 Shipping Information</div>
               <div style="width: 33.333%; padding: 5px;"></div>
             </div>
-            <div style="display: flex; flex-direction: row; justify-content: space-between; height: 28px;">
+            <div style="display: flex; flex-direction: row; justify-content: space-between; height: 33px;">
               <div style="width: 33.333%; padding: 5px;">
                 <p style="font-size: 10pt;"></p>
               </div>
@@ -235,7 +235,7 @@
           <div style="border-bottom: 1px solid;">
             <div style="display: flex; flex-direction: row; justify-content: space-between;">
               <!-- Currency and Charges Section -->
-              <div style="width: 33.333%; height: 57px; display: flex;">
+              <div style="width: 33.333%; height: 60px; display: flex; min-width: 200px;">
                 <!-- Currency -->
                 <div style="width: 30%; padding: 5px; box-sizing: border-box; overflow: hidden;">
                   <div>Currency</div>
@@ -244,13 +244,13 @@
 
                 <!-- CHGS Box -->
                 <div
-                  style="width: 15%; padding: 5px; border-left: 1px solid; font-size: 6px; background: #E3DCD5; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+                  style="width: 15%; padding: 5px; border-left: 1px solid; font-size: 8px; background: #E3DCD5; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>CHGS</div>
                   <p style="visibility: hidden;">-</p> <!-- Maintains consistent height -->
                 </div>
 
                 <!-- WT/VAL and Other Section -->
-                <div style="width: 55%; display: flex; flex-direction: column; font-size: 6px; box-sizing: border-box;">
+                <div style="width: 55%; display: flex; flex-direction: column; font-size: 8px; box-sizing: border-box;">
                   <!-- Header Row -->
                   <div style="display: flex; border-bottom: 1px solid; height: 50%;">
                     <div
@@ -318,7 +318,7 @@
           </div>
         </div>
       </div>
-      <div style="border-bottom: 1px solid; border-top: 1px solid; height: 60px; position:relative;">
+      <div style="border-bottom: 1px solid; border-top: 1px solid; height: 70px; position:relative;">
         <div style="width: 90%; padding: 5px;">
           <div>Handling Information</div>
           <p style="font-size: 10pt;">{{handlingInformation}}</p>
